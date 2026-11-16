@@ -443,6 +443,12 @@ public class MobileBrowseActivity extends MobileActivity
             float strength = Math.min(1f, y / youFadeIn);
             youFade.setAlpha(strength);
             youGlow.setBandCover(strength);
+            int dy = y - oy;
+            if (dy > 16) {
+                setNavCollapsed(true);
+            } else if (dy < -16 || y <= 0) {
+                setNavCollapsed(false);
+            }
         });
         mYouRows = findViewById(R.id.mobile_you_rows);
         mYouAccountText = findViewById(R.id.mobile_you_account_text);
@@ -542,6 +548,7 @@ public class MobileBrowseActivity extends MobileActivity
         if (mTopHider != null) {
             mTopHider.show();
         }
+        setNavCollapsed(false);
     }
 
     /** Home's chips float only over Home and its topics, never over the You panel. */
@@ -1347,12 +1354,26 @@ public class MobileBrowseActivity extends MobileActivity
             }
         });
         if (!com.newtube.mobile.ui.common.FocusRing.isTv(this)) { // a remote needs the tabs in reach
-            mNavHider = new com.newtube.mobile.ui.common.NavHider(findViewById(R.id.mobile_nav_glass));
+            View navCluster = findViewById(R.id.mobile_nav_cluster);
+            mNavHider = new com.newtube.mobile.ui.common.NavHider(navCluster != null ? navCluster : findViewById(R.id.mobile_nav_glass));
+            mNavHider.setMorph(new com.newtube.mobile.ui.common.NavHider.Morph() {
+                @Override
+                public boolean hide(float travel) {
+                    if (mNavHeld) {
+                        return false;
+                    }
+                    setNavCollapsed(true);
+                    return true;
+                }
+
+                @Override
+                public boolean show() {
+                    setNavCollapsed(false);
+                    return !mNavHeld;
+                }
+            });
             mNavHider.setOnSlide(navY -> {
                 mNavY = navY;
-                if (mSearchFab != null) {
-                    mSearchFab.setTranslationY(navY);
-                }
             });
             mContentGrid.addOnScrollListener(mNavHider);
             mTopHider = new com.newtube.mobile.ui.common.NavHider(findViewById(R.id.mobile_top_glass), true);
@@ -1482,7 +1503,18 @@ public class MobileBrowseActivity extends MobileActivity
 
     private void setupBottomNav() {
         NavBloom.attach(mBottomNav); // MEETUBE(nav bloom, issue #47)
+        View navGlass = findViewById(R.id.mobile_nav_glass);
+        if (navGlass != null) {
+            navGlass.setOnClickListener(v -> {
+                if (mNavCollapsed) {
+                    setNavCollapsed(false);
+                }
+            });
+        }
         mBottomNav.setOnItemSelectedListener(item -> {
+            if (mNavCollapsed) {
+                setNavCollapsed(false);
+            }
             if (item.getItemId() == SEARCH_ITEM_ID) {
                 if (!mSuppressNavCallback) {
                     com.newtube.mobile.ui.common.Haptics.nav(mBottomNav, 40, 255);
@@ -1515,6 +1547,10 @@ public class MobileBrowseActivity extends MobileActivity
         // YouTube; at the top it refreshes as a pull does, the spinner showing (issue #130, as X
         // does). You, and a page with no pull to refresh, repaint as they always did.
         mBottomNav.setOnItemReselectedListener(item -> {
+            if (mNavCollapsed) {
+                setNavCollapsed(false);
+                return;
+            }
             if (mSuppressNavCallback) {
                 return;
             }
@@ -1835,6 +1871,7 @@ public class MobileBrowseActivity extends MobileActivity
     }
 
     private void onNavItemChosen(int itemId) {
+        setNavCollapsed(false);
         // MEETUBE(shorts): like YouTube, the Shorts tab IS the vertical player - no grid. The tab
         // loads the feed (spinner only) and opens its first unseen short; leaving the player comes
         // back to the tab you were on (onResume).
@@ -2060,6 +2097,72 @@ public class MobileBrowseActivity extends MobileActivity
         if (morph != null) {
             morph.cancel();
         }
+    }
+
+    private android.animation.ValueAnimator mNavCollapseAnim;
+    private boolean mNavCollapsed = false;
+
+    private void setNavCollapsed(boolean collapsed) {
+        if (mNavCollapsed == collapsed) {
+            return;
+        }
+        mNavCollapsed = collapsed;
+
+        View navGlass = findViewById(R.id.mobile_nav_glass);
+        if (navGlass == null || mBottomNav == null) {
+            return;
+        }
+
+        if (mNavCollapseAnim != null) {
+            mNavCollapseAnim.cancel();
+        }
+
+        float density = getResources().getDisplayMetrics().density;
+        int targetWidth = (int) ((collapsed ? 56 : 260) * density);
+        int startWidth = navGlass.getWidth();
+        if (startWidth <= 0) {
+            startWidth = (int) ((collapsed ? 260 : 56) * density);
+        }
+
+        int currentSelectedId = mBottomNav.getSelectedItemId();
+        if (currentSelectedId == 0 && mBottomNav.getMenu().size() > 0) {
+            currentSelectedId = mBottomNav.getMenu().getItem(0).getItemId();
+        }
+        final int activeId = currentSelectedId;
+
+        if (collapsed) {
+            mBottomNav.animate().cancel();
+            mBottomNav.animate().alpha(0f).setDuration(60).withEndAction(() -> {
+                mBottomNav.setLabelVisibilityMode(com.google.android.material.navigation.NavigationBarView.LABEL_VISIBILITY_UNLABELED);
+                for (int i = 0; i < mBottomNav.getMenu().size(); i++) {
+                    android.view.MenuItem item = mBottomNav.getMenu().getItem(i);
+                    item.setVisible(item.getItemId() == activeId);
+                }
+                mBottomNav.animate().alpha(1f).setDuration(100).start();
+            }).start();
+        } else {
+            mBottomNav.animate().cancel();
+            mBottomNav.animate().alpha(0f).setDuration(60).withEndAction(() -> {
+                for (int i = 0; i < mBottomNav.getMenu().size(); i++) {
+                    mBottomNav.getMenu().getItem(i).setVisible(true);
+                }
+                mBottomNav.setLabelVisibilityMode(com.google.android.material.navigation.NavigationBarView.LABEL_VISIBILITY_LABELED);
+                mBottomNav.animate().alpha(1f).setDuration(100).start();
+            }).start();
+        }
+
+        android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofInt(startWidth, targetWidth);
+        anim.setDuration(220);
+        anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
+        anim.addUpdateListener(a -> {
+            ViewGroup.LayoutParams lp = navGlass.getLayoutParams();
+            if (lp != null) {
+                lp.width = (int) a.getAnimatedValue();
+                navGlass.setLayoutParams(lp);
+            }
+        });
+        mNavCollapseAnim = anim;
+        anim.start();
     }
 
     /** Where the bubble rests: its corner, by its layout params (its bounds move while it morphs). */
@@ -2297,7 +2400,7 @@ public class MobileBrowseActivity extends MobileActivity
 
         boolean subScreen = mSectionFromYou && !mYouShowing
                 && mBottomNav.getMenu().findItem(toMenuItemId(mCurrentSectionId)) == null;
-        mTopBar.show(subScreen, mYouShowing ? getString(R.string.mobile_nav_you) : getCurrentSectionTitle());
+        mTopBar.show(subScreen, mYouShowing ? getString(R.string.mobile_nav_account) : getCurrentSectionTitle());
         updateChipRow();
     }
 
@@ -3627,13 +3730,13 @@ public class MobileBrowseActivity extends MobileActivity
         android.view.MenuItem homeItem = menu.add(Menu.NONE, toMenuItemId(MediaGroup.TYPE_HOME), 0, R.string.header_home);
         homeItem.setIcon(R.drawable.ic_nav_home);
 
-        // 2. Explore
-        android.view.MenuItem exploreItem = menu.add(Menu.NONE, toMenuItemId(MediaGroup.TYPE_TRENDING), 1, R.string.mobile_you_explore);
-        exploreItem.setIcon(R.drawable.ic_nav_hyped);
+        // 2. Shorts
+        android.view.MenuItem shortsItem = menu.add(Menu.NONE, toMenuItemId(MediaGroup.TYPE_SHORTS), 1, R.string.header_shorts);
+        shortsItem.setIcon(R.drawable.ic_nav_shorts);
 
-        // 3. Library
-        android.view.MenuItem libraryItem = menu.add(Menu.NONE, YOU_ITEM_ID, 2, R.string.mobile_you_library);
-        libraryItem.setIcon(R.drawable.ic_nav_subscriptions);
+        // 3. Account
+        android.view.MenuItem accountItem = menu.add(Menu.NONE, YOU_ITEM_ID, 2, R.string.mobile_nav_account);
+        accountItem.setIcon(R.drawable.ic_nav_you);
 
         // Re-assert the highlight after clear()/add() wiped it, so the current tab stays lit.
         reassertNavHighlight(menu, true);
@@ -3802,15 +3905,17 @@ public class MobileBrowseActivity extends MobileActivity
             rebuildNavigation();
         }
         // MEETUBE(search fab): its corner, as Settings > Customization says.
-        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams fabParams =
-                (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) mSearchFab.getLayoutParams();
-        boolean fabLeft = NavTabs.searchFabLeft(this);
-        if (fabLeft != (fabParams.startToStart == androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID)) {
-            fabParams.startToStart = fabLeft ? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-                    : androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET;
-            fabParams.endToEnd = fabLeft ? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
-                    : androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID;
-            mSearchFab.setLayoutParams(fabParams);
+        if (mSearchFab != null && mSearchFab.getLayoutParams() instanceof androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams fabParams =
+                    (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) mSearchFab.getLayoutParams();
+            boolean fabLeft = NavTabs.searchFabLeft(this);
+            if (fabLeft != (fabParams.startToStart == androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID)) {
+                fabParams.startToStart = fabLeft ? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                        : androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET;
+                fabParams.endToEnd = fabLeft ? androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+                        : androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID;
+                mSearchFab.setLayoutParams(fabParams);
+            }
         }
         if (searchOnTop && mSearchFabOut) {
             showNav(); // Search went up top: the bubble opens back into the bar

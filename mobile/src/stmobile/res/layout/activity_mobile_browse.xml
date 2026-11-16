@@ -673,71 +673,71 @@
     <!-- MEETUBE(glass): the bottom nav floats as a blurred glass capsule over the page (Glass.blur).
          The screen's content already stops above the system navigation bar (MobileActivity insets),
          so the 12dp margin is measured from there. -->
-    <!-- U-TUBE: floating liquid-glass navigation capsule (Home | Explore | Library) -->
-    <com.newtube.mobile.ui.common.GlassView
-        android:id="@+id/mobile_nav_glass"
-        android:layout_width="0dp"
+    <!-- U-TUBE: floating navigation cluster centered at bottom -->
+    <LinearLayout
+        android:id="@+id/mobile_nav_cluster"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="10dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:layout_marginBottom="?attr/meetubeNavBottomMargin"
         android:elevation="6dp"
-        android:padding="6dp"
-        app:glassCornerRadius="999dp"
-        app:glassLiquid="?attr/meetubeNavLiquid"
-        app:glassTint="?attr/meetubeNavTint"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/mobile_search_fab"
-        app:layout_constraintWidth_max="340dp">
-
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/mobile_bottom_nav"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            app:elevation="0dp"
-            app:itemBackground="?attr/meetubeNavItemBackground"
-            app:itemIconSize="24dp"
-            app:itemIconTint="@color/mobile_bottom_nav_item"
-            app:itemRippleColor="@android:color/transparent"
-            app:itemTextAppearanceActive="@style/MobileBottomNavText"
-            app:itemTextAppearanceActiveBoldEnabled="false"
-            app:itemTextAppearanceInactive="@style/MobileBottomNavText"
-            app:itemTextColor="@color/mobile_bottom_nav_item"
-            app:labelVisibilityMode="labeled"
-            app:paddingBottomSystemWindowInsets="false" />
-
-    </com.newtube.mobile.ui.common.GlassView>
-
-    <!-- U-TUBE: standalone circular floating liquid-glass Search button -->
-    <com.newtube.mobile.ui.common.GlassView
-        android:id="@+id/mobile_search_fab"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginEnd="16dp"
-        android:clickable="true"
-        android:contentDescription="@string/mobile_search_button"
-        android:elevation="6dp"
-        android:focusable="true"
-        android:visibility="visible"
-        app:glassCornerRadius="999dp"
-        app:glassLiquid="?attr/meetubeNavLiquid"
-        app:glassTint="?attr/meetubeNavTint"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintTop_toTopOf="@id/mobile_nav_glass"
-        app:layout_constraintBottom_toBottomOf="@id/mobile_nav_glass"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_gravity="center"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_mobile_search"
-            app:tint="@color/mobile_nav_item_selected" />
+        <com.newtube.mobile.ui.common.GlassView
+            android:id="@+id/mobile_nav_glass"
+            android:layout_width="260dp"
+            android:layout_height="56dp"
+            android:padding="0dp"
+            app:glassCornerRadius="999dp"
+            app:glassLiquid="?attr/meetubeNavLiquid"
+            app:glassTint="?attr/meetubeNavTint">
 
-    </com.newtube.mobile.ui.common.GlassView>
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/mobile_bottom_nav"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                app:elevation="0dp"
+                app:itemBackground="?attr/meetubeNavItemBackground"
+                app:itemIconSize="24dp"
+                app:itemIconTint="@color/mobile_bottom_nav_item"
+                app:itemRippleColor="@android:color/transparent"
+                app:itemTextAppearanceActive="@style/MobileBottomNavText"
+                app:itemTextAppearanceActiveBoldEnabled="false"
+                app:itemTextAppearanceInactive="@style/MobileBottomNavText"
+                app:itemTextColor="@color/mobile_bottom_nav_item"
+                app:labelVisibilityMode="labeled"
+                app:paddingBottomSystemWindowInsets="false" />
+
+        </com.newtube.mobile.ui.common.GlassView>
+
+        <com.newtube.mobile.ui.common.GlassView
+            android:id="@+id/mobile_search_fab"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:contentDescription="@string/mobile_search_button"
+            android:focusable="true"
+            android:visibility="visible"
+            app:glassCornerRadius="999dp"
+            app:glassLiquid="?attr/meetubeNavLiquid"
+            app:glassTint="?attr/meetubeNavTint">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_mobile_search"
+                app:tint="@color/mobile_nav_item_selected" />
+
+        </com.newtube.mobile.ui.common.GlassView>
+
+    </LinearLayout>
 
     <!-- MEETUBE(nav lens, issue #46): the liquid glass lens a tab switch glides across the bar;
          sized and placed in code (NavLens.play), there only while it moves. -->
