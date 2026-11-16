@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wavelet-matched search glyph (BitChordIcons.TabSearch) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M219,374.24 Q151,374.24 102.5,325.74 Q54,277.24 54,209.24 Q54,141.24 102.5,92.74 Q151,44.24 219,44.24 Q287,44.24 335.5,92.74 Q384,141.24 384,209.24 Q384,264.24 350,309.24 L451,410.24 Q458,417.24 458,427.24 Q458,438.24 451,445.24 Q444,452.24 434,452.24 Q423,452.24 416,445.24 L315,343.24 Q271,374.24 219,374.24 Z M128,300.24 Q166,338.24 219,338.24 Q272,338.24 310,300.24 Q348,262.24 348,209.24 Q348,156.24 310,118.24 Q272,80.24 219,80.24 Q166,80.24 128,118.24 Q90,156.24 90,209.24 Q90,262.24 128,300.24 Z" />
+</vector>

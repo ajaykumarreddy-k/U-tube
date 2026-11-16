@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wavelet-matched nav item tint: 100% white when selected, 65% white when unselected -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/mobile_nav_item_selected" android:state_checked="true" />
+    <item android:color="@color/mobile_nav_item_unselected" />
+</selector>

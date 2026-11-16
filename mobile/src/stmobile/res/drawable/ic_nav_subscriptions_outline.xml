@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wavelet-matched Subscriptions/Library outline glyph (BitChordIcons.TabLibrary) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M154 27.24Q156 0.24 185 0.24H322Q352 0.24 353 27.24ZM116 87.24Q121 56.24 150 56.24H356Q385 56.24 390 87.24ZM133 500.24Q66 500.24 66 434.24V187.24Q66 121.24 133 121.24H378Q446 121.24 446 187.24V434.24Q446 500.24 385 500.24Z" />
+</vector>

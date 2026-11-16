@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="update_urls">
+        <!-- U-Tube: updates come from U-Tube repo -->
+        <item>https://github.com/ajaykumarreddy-k/U-tube/releases/latest/download/u-tube.json</item>
+        <item>https://github.com/ajaykumarreddy-k/U-tube/releases/latest/download/meetube.json</item>
+        <item>https://github.com/ajaykumarreddy-k/U-tube/releases/download/latest/u-tube.json</item>
+        <item>https://github.com/ajaykumarreddy-k/U-tube/releases/download/latest/meetube.json</item>
+    </string-array>
+</resources>
