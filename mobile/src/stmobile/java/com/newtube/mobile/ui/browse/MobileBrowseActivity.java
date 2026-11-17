@@ -204,6 +204,8 @@ public class MobileBrowseActivity extends MobileActivity
     private boolean mTopBarPinned;
     // MEETUBE(search fab): Search floated out of the slid-away bar; out = shown in its corner.
     private View mSearchFab;
+    private View mActiveBubble;
+    private ImageView mActiveBubbleIcon;
     private boolean mSearchFabOut;
     private boolean mNavHeld;
     private float mNavY; // how far NavHider has the bar slid down
@@ -470,6 +472,12 @@ public class MobileBrowseActivity extends MobileActivity
         mSearchFab = findViewById(R.id.mobile_search_fab);
         com.newtube.mobile.ui.common.Glass.blur(mSearchFab, findViewById(R.id.mobile_blur_target));
         mSearchFab.setOnClickListener(v -> SearchPresenter.instance(this).startSearch(null));
+        mActiveBubble = findViewById(R.id.mobile_active_bubble);
+        if (mActiveBubble != null) {
+            com.newtube.mobile.ui.common.Glass.blur(mActiveBubble, findViewById(R.id.mobile_blur_target));
+            mActiveBubbleIcon = findViewById(R.id.mobile_active_bubble_icon);
+            mActiveBubble.setOnClickListener(v -> setNavCollapsed(false));
+        }
         // The pill floats above the system bar (content is already inset), so the bar must not
         // pad itself by that inset too - Material does, whatever paddingBottomSystemWindowInsets says.
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(mBottomNav, (v, insets) -> insets);
@@ -1502,7 +1510,6 @@ public class MobileBrowseActivity extends MobileActivity
     }
 
     private void setupBottomNav() {
-        NavBloom.attach(mBottomNav); // MEETUBE(nav bloom, issue #47)
         View navGlass = findViewById(R.id.mobile_nav_glass);
         if (navGlass != null) {
             navGlass.setOnClickListener(v -> {
@@ -1592,34 +1599,7 @@ public class MobileBrowseActivity extends MobileActivity
      * (or no switch to show): then the bar only nudges.
      */
     private boolean playNavLens(int toItemId) {
-        com.newtube.mobile.ui.common.NavLens lens = findViewById(R.id.mobile_nav_lens);
-        View from = mBottomNav.findViewById(mBottomNav.getSelectedItemId());
-        View to = mBottomNav.findViewById(toItemId);
-        View bar = findViewById(R.id.mobile_nav_glass);
-        // MEETUBE(youtube mode): no lens and no wiggle on the docked bar.
-        if (!com.newtube.mobile.ui.common.NavLens.enabled(this) || com.newtube.mobile.ui.common.YouTubeMode.isOn(this)
-                || from == null || to == null || from == to
-                || to.getWidth() == 0 || !(bar instanceof com.newtube.mobile.ui.common.GlassView)) {
-            return false;
-        }
-        boolean dragged = !Float.isNaN(mNavDragFromX); // MEETUBE(#90): from where the finger let go
-        float fromX = dragged ? mNavDragFromX : com.newtube.mobile.ui.common.NavLens.centreInBar(from, bar);
-        com.newtube.mobile.ui.common.NavLens.jiggle(bar,
-                com.newtube.mobile.ui.common.NavLens.centreInBar(to, bar) > fromX ? 1 : -1);
-        if (lens == null || !com.newtube.mobile.ui.common.NavLens.supported(this)) {
-            return true;
-        }
-        if (mNavPill == null) {
-            mNavPill = mBottomNav.getItemBackground();
-        }
-        mBottomNav.setItemBackground(null);
-        mNavLensGliding = true;
-        lens.play((com.newtube.mobile.ui.common.GlassView) bar, fromX, to, dragged, () -> {
-            mBottomNav.setItemBackground(mNavPill);
-            mNavLensGliding = false;
-            mBottomNav.post(this::maybeLaunchShorts); // held while the lens glided
-        });
-        return true;
+        return false;
     }
 
     // MEETUBE(#90): a finger dragged along the bar - the lens follows it from wherever it started (a
@@ -2099,7 +2079,6 @@ public class MobileBrowseActivity extends MobileActivity
         }
     }
 
-    private android.animation.ValueAnimator mNavCollapseAnim;
     private boolean mNavCollapsed = false;
 
     private void setNavCollapsed(boolean collapsed) {
@@ -2109,60 +2088,54 @@ public class MobileBrowseActivity extends MobileActivity
         mNavCollapsed = collapsed;
 
         View navGlass = findViewById(R.id.mobile_nav_glass);
-        if (navGlass == null || mBottomNav == null) {
+        if (navGlass == null) {
             return;
         }
 
-        if (mNavCollapseAnim != null) {
-            mNavCollapseAnim.cancel();
+        if (mActiveBubble == null) {
+            mActiveBubble = findViewById(R.id.mobile_active_bubble);
+            if (mActiveBubble != null) {
+                com.newtube.mobile.ui.common.Glass.blur(mActiveBubble, findViewById(R.id.mobile_blur_target));
+                mActiveBubbleIcon = findViewById(R.id.mobile_active_bubble_icon);
+                mActiveBubble.setOnClickListener(v -> setNavCollapsed(false));
+            }
         }
 
-        float density = getResources().getDisplayMetrics().density;
-        int targetWidth = (int) ((collapsed ? 56 : 260) * density);
-        int startWidth = navGlass.getWidth();
-        if (startWidth <= 0) {
-            startWidth = (int) ((collapsed ? 260 : 56) * density);
+        if (mActiveBubble == null) {
+            return;
         }
-
-        int currentSelectedId = mBottomNav.getSelectedItemId();
-        if (currentSelectedId == 0 && mBottomNav.getMenu().size() > 0) {
-            currentSelectedId = mBottomNav.getMenu().getItem(0).getItemId();
-        }
-        final int activeId = currentSelectedId;
 
         if (collapsed) {
-            mBottomNav.animate().cancel();
-            mBottomNav.animate().alpha(0f).setDuration(60).withEndAction(() -> {
-                mBottomNav.setLabelVisibilityMode(com.google.android.material.navigation.NavigationBarView.LABEL_VISIBILITY_UNLABELED);
-                for (int i = 0; i < mBottomNav.getMenu().size(); i++) {
-                    android.view.MenuItem item = mBottomNav.getMenu().getItem(i);
-                    item.setVisible(item.getItemId() == activeId);
+            int selectedId = mBottomNav != null ? mBottomNav.getSelectedItemId() : 0;
+            if (mActiveBubbleIcon != null) {
+                if (selectedId == toMenuItemId(MediaGroup.TYPE_SHORTS)) {
+                    mActiveBubbleIcon.setImageResource(R.drawable.ic_nav_shorts);
+                } else if (selectedId == YOU_ITEM_ID) {
+                    mActiveBubbleIcon.setImageResource(R.drawable.ic_nav_you);
+                } else {
+                    mActiveBubbleIcon.setImageResource(R.drawable.ic_nav_home);
                 }
-                mBottomNav.animate().alpha(1f).setDuration(100).start();
+            }
+            navGlass.animate().cancel();
+            navGlass.animate().alpha(0f).scaleX(0.85f).scaleY(0.85f).setDuration(160).withEndAction(() -> {
+                navGlass.setVisibility(View.GONE);
+                mActiveBubble.setVisibility(View.VISIBLE);
+                mActiveBubble.setScaleX(0.85f);
+                mActiveBubble.setScaleY(0.85f);
+                mActiveBubble.setAlpha(0f);
+                mActiveBubble.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(160).start();
             }).start();
         } else {
-            mBottomNav.animate().cancel();
-            mBottomNav.animate().alpha(0f).setDuration(60).withEndAction(() -> {
-                for (int i = 0; i < mBottomNav.getMenu().size(); i++) {
-                    mBottomNav.getMenu().getItem(i).setVisible(true);
-                }
-                mBottomNav.setLabelVisibilityMode(com.google.android.material.navigation.NavigationBarView.LABEL_VISIBILITY_LABELED);
-                mBottomNav.animate().alpha(1f).setDuration(100).start();
+            mActiveBubble.animate().cancel();
+            mActiveBubble.animate().alpha(0f).scaleX(0.85f).scaleY(0.85f).setDuration(130).withEndAction(() -> {
+                mActiveBubble.setVisibility(View.GONE);
+                navGlass.setVisibility(View.VISIBLE);
+                navGlass.setScaleX(0.85f);
+                navGlass.setScaleY(0.85f);
+                navGlass.setAlpha(0f);
+                navGlass.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(160).start();
             }).start();
         }
-
-        android.animation.ValueAnimator anim = android.animation.ValueAnimator.ofInt(startWidth, targetWidth);
-        anim.setDuration(220);
-        anim.setInterpolator(new android.view.animation.DecelerateInterpolator());
-        anim.addUpdateListener(a -> {
-            ViewGroup.LayoutParams lp = navGlass.getLayoutParams();
-            if (lp != null) {
-                lp.width = (int) a.getAnimatedValue();
-                navGlass.setLayoutParams(lp);
-            }
-        });
-        mNavCollapseAnim = anim;
-        anim.start();
     }
 
     /** Where the bubble rests: its corner, by its layout params (its bounds move while it morphs). */

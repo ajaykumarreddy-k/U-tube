@@ -252,6 +252,7 @@ public final class NavLens extends View {
             mAnimator.cancel();
             mAnimator = null;
         }
+        setVisibility(GONE);
     }
 
     /** Sizes the lens to {@code tab} swollen; returns its width (the height is in its layout params). */
@@ -271,8 +272,20 @@ public final class NavLens extends View {
     private void place(View bar, int w, int h) {
         float px = bar.getPivotX();
         float py = bar.getPivotY();
-        setTranslationX(bar.getLeft() + bar.getTranslationX() + px + (mCx - px) * bar.getScaleX() - getLeft() - w / 2f);
-        setTranslationY(bar.getTop() + bar.getTranslationY() + py + (mCy - py) * bar.getScaleY() - getTop() - h / 2f);
+        float barLeft = bar.getLeft() + bar.getTranslationX();
+        float barTop = bar.getTop() + bar.getTranslationY();
+        View p = (View) bar.getParent();
+        while (p != null && p != getParent()) {
+            barLeft += p.getLeft() + p.getTranslationX();
+            barTop += p.getTop() + p.getTranslationY();
+            if (p.getParent() instanceof View) {
+                p = (View) p.getParent();
+            } else {
+                break;
+            }
+        }
+        setTranslationX(barLeft + px + (mCx - px) * bar.getScaleX() - getLeft() - w / 2f);
+        setTranslationY(barTop + py + (mCy - py) * bar.getScaleY() - getTop() - h / 2f);
     }
 
     /** The horizontal centre of {@code tab} in {@code bar}'s layout coordinates (no transforms). */

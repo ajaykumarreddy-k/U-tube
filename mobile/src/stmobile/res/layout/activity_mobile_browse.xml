@@ -715,6 +715,29 @@
         </com.newtube.mobile.ui.common.GlassView>
 
         <com.newtube.mobile.ui.common.GlassView
+            android:id="@+id/mobile_active_bubble"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:clickable="true"
+            android:contentDescription="@string/header_home"
+            android:focusable="true"
+            android:visibility="gone"
+            app:glassCornerRadius="999dp"
+            app:glassLiquid="?attr/meetubeNavLiquid"
+            app:glassTint="?attr/meetubeNavTint">
+
+            <ImageView
+                android:id="@+id/mobile_active_bubble_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_nav_home"
+                app:tint="@color/mobile_nav_item_selected" />
+
+        </com.newtube.mobile.ui.common.GlassView>
+
+        <com.newtube.mobile.ui.common.GlassView
             android:id="@+id/mobile_search_fab"
             android:layout_width="56dp"
             android:layout_height="56dp"
