@@ -195,7 +195,6 @@ public class MobilePlaybackActivity extends MobileActivity
     private TextView mTitleView;
     /** MEETUBE(fullscreen): the channel, under the title in the vertical fullscreen. */
     private TextView mPlayerAuthor;
-    private ImageButton mBackButton;
     private ImageButton mPlayPauseButton;
     private ImageButton mFullscreenButton;
     private TextView mPositionView;
@@ -210,17 +209,14 @@ public class MobilePlaybackActivity extends MobileActivity
     @Nullable private View mBottomRow;
     /**
      * MEETUBE(fullscreen-actions): like, dislike, comments, download and share on a pill under the
-     * bar in fullscreen, and the chevron that hides or shows it. Shown until the chevron hides it, and
-     * the choice is kept.
+     * bar in fullscreen.
      */
     @Nullable private View mActionsRow;
-    @Nullable private ImageButton mActionsToggle;
     @Nullable private ImageButton mPlayerLike;
     @Nullable private ImageButton mPlayerDislike;
     @Nullable private ImageButton mPlayerDownload;
     @Nullable private View mPlayerComments;
     @Nullable private View mPlayerChat; // MEETUBE(live chat, issue #32): chat from the fullscreen pill
-    private boolean mActionsShown;
     /** The pill's comments button left fullscreen: open the panel once the page is back. */
     private boolean mCommentsAfterFullscreen;
     /** The comments were opened from the vertical fullscreen: closing them goes back to it. */
@@ -238,7 +234,6 @@ public class MobilePlaybackActivity extends MobileActivity
     private int mChatMargin; // the room the video gives the chat column (its end margin, once slid)
     @Nullable private android.animation.ValueAnimator mChatSlide;
     private static final String PLAYER_UI_PREFS = "meetube_player_ui";
-    private static final String KEY_ACTIONS_SHOWN = "fullscreen_actions";
     private static final String KEY_TIME_REMAINING = "time_remaining";
     private boolean mTimeRemaining; // MEETUBE(issue #67): the time pill counts down, toggled by a tap
     /** Previous / play-pause / next, and the top-right options: they step aside while scrubbing. */
@@ -886,7 +881,6 @@ public class MobilePlaybackActivity extends MobileActivity
         mTitleView = findViewById(R.id.mobile_player_title);
         mTitleView.setOnClickListener(v -> showDescriptionSheet()); // MEETUBE(issue #164)
         mPlayerAuthor = findViewById(R.id.mobile_player_author);
-        mBackButton = findViewById(R.id.mobile_player_back);
         mAudioButton = findViewById(R.id.mobile_player_audio);
         mPlayPauseButton = findViewById(R.id.mobile_player_play_pause);
         mFullscreenButton = findViewById(R.id.mobile_player_fullscreen);
@@ -897,7 +891,6 @@ public class MobilePlaybackActivity extends MobileActivity
         mTimeBar = findViewById(R.id.mobile_player_time_bar);
         mBottomRow = findViewById(R.id.mobile_player_bottom_row);
         mActionsRow = findViewById(R.id.mobile_player_actions);
-        mActionsToggle = findViewById(R.id.mobile_player_actions_toggle);
         mPlayerLike = findViewById(R.id.mobile_player_like);
         mPlayerDislike = findViewById(R.id.mobile_player_dislike);
         mPlayerDownload = findViewById(R.id.mobile_player_download);
@@ -919,7 +912,6 @@ public class MobilePlaybackActivity extends MobileActivity
         }
         mFloatingLock = new FloatingLock(getSharedPreferences(PLAYER_UI_PREFS, MODE_PRIVATE),
                 lockObstacles.toArray(new View[0]), mPlayerLock, mPlayerUnlock);
-        mActionsShown = getSharedPreferences(PLAYER_UI_PREFS, MODE_PRIVATE).getBoolean(KEY_ACTIONS_SHOWN, true);
         mTimeRemaining = getSharedPreferences(PLAYER_UI_PREFS, MODE_PRIVATE).getBoolean(KEY_TIME_REMAINING, false);
         findViewById(R.id.mobile_player_time).setOnClickListener(v -> {
             mTimeRemaining = !mTimeRemaining;
@@ -967,12 +959,6 @@ public class MobilePlaybackActivity extends MobileActivity
                 com.newtube.mobile.ui.common.Glass.isPlayerFrost(this) ? findViewById(R.id.mobile_player_glass) : null;
         for (View control : new View[] {mPrevButton, mNextButton}) {
             com.newtube.mobile.ui.common.GlassDrawable.applyButton(control, videoGlass, dp(4), true);
-        }
-        if (mBackButton != null) {
-            mBackButton.setVisibility(View.GONE);
-        }
-        if (mActionsToggle != null) {
-            mActionsToggle.setVisibility(View.GONE);
         }
         // MEETUBE(toasts): the player's own message pills (zoom, 2x, brightness/volume, chapter,
         // notices, skip) frosted like the app's message pill: the video under them, blurred, always -
@@ -1477,7 +1463,6 @@ public class MobilePlaybackActivity extends MobileActivity
             ((WatchRootLayout) mWatchRoot).setPageScroll(this::collapseTallBox);
         }
 
-        mBackButton.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         mAudioButton.setOnClickListener(v -> setAudioOnly(!mAudioOnly));
         mPlayPauseButton.setOnClickListener(v -> togglePlayPause());
         mFullscreenButton.setOnClickListener(v -> toggleFullscreen());
@@ -1680,9 +1665,6 @@ public class MobilePlaybackActivity extends MobileActivity
             hideControls();
             onChatEntryClicked();
         });
-        if (mActionsToggle != null) {
-            mActionsToggle.setVisibility(View.GONE);
-        }
 
         // Channel row (avatar + name/subs) opens the channel page; the Subscribe button inside
         // the row keeps its own click. ChannelPresenter resolves the channelId from metadata
@@ -1745,9 +1727,6 @@ public class MobilePlaybackActivity extends MobileActivity
                 button.setLayoutParams(lp);
                 button.setPadding(pad, pad, pad, pad);
             }
-        }
-        if (mBackButton != null) {
-            mBackButton.setVisibility(View.GONE);
         }
     }
 
@@ -3288,9 +3267,6 @@ public class MobilePlaybackActivity extends MobileActivity
             mActionsRow.setVisibility(actions ? View.VISIBLE : View.GONE);
             syncPillCounts();
             setMargins(mActionsRow, dp(8), 0, 0, lift);
-        }
-        if (mActionsToggle != null) {
-            mActionsToggle.setVisibility(View.GONE);
         }
         updateMoreVideosHint();
         if (actions) {
@@ -9831,7 +9807,7 @@ public class MobilePlaybackActivity extends MobileActivity
         mScrubChromeHidden = scrubbing;
         float alpha = scrubbing ? 0f : 1f;
         long duration = scrubbing ? Motion.FADE_OUT_MS : Motion.FADE_IN_MS;
-        for (View view : new View[] {mBackButton, mAudioButton, mTitleView, mPlayerAuthor, mOptionsRow, mTransport,
+        for (View view : new View[] {mAudioButton, mTitleView, mPlayerAuthor, mOptionsRow, mTransport,
                 mBottomRow, mActionsRow, mTopScrim}) {
             if (view != null) {
                 view.animate().cancel();

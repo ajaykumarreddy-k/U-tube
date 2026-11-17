@@ -113,22 +113,7 @@
                     android:layout_gravity="bottom"
                     android:background="@drawable/mobile_player_bottom_scrim" />
 
-                <!-- Top bar: back + title -->
-                <ImageButton
-                    android:id="@+id/mobile_player_back"
-                    android:layout_width="@dimen/mobile_player_icon_button"
-                    android:layout_height="@dimen/mobile_player_icon_button"
-                    android:layout_gravity="top|start"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="10dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/mobile_player_minimize"
-                    android:padding="12dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_player_minimize"
-                    android:tint="@color/mobile_player_on_video"
-                    android:visibility="gone" />
-
+                <!-- Top bar: audio + title -->
                 <!-- MEETUBE(audio-only): headphones - play the sound alone (the video track is dropped,
                      the thumbnail stays), and Home keeps the audio going instead of a PiP window. -->
                 <com.newtube.mobile.ui.playback.PlayerButton
@@ -392,19 +377,6 @@
                             tools:visibility="visible" />
 
                     </FrameLayout>
-
-                    <!-- MEETUBE(fullscreen-actions): fullscreen only - hides (chevron down) or brings
-                         back (chevron up) the row of actions under the seek bar. -->
-                    <ImageButton
-                        android:id="@+id/mobile_player_actions_toggle"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/mobile_player_hide_actions"
-                        android:padding="10dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_chips_expand"
-                        android:visibility="gone" />
 
                     <ImageButton
                         android:id="@+id/mobile_player_fullscreen"
