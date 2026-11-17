@@ -6,6 +6,18 @@ Tracking document for UI enhancements, design refinements, and feature updates a
 
 ## 1. Player & Playback UI Fixes
 
+- **Removed Circular Discs from Player Controls**:
+  - Removed the dark tinted / circular glass background discs (`GlassDrawable.applyButton`) behind player buttons:
+    - **Fullscreen** (`mobile_player_fullscreen`)
+    - **Cast** (`mobile_player_cast`)
+    - **CC / Subtitles** (`mobile_player_subtitles`)
+    - **Lock & Unlock** (`mobile_player_lock`, `mobile_player_unlock`)
+    - **Settings / More** (`mobile_player_more`)
+    - **Audio Symbol** (`mobile_player_audio`)
+  - All controls now render with clean, borderless icons (`?attr/selectableItemBackgroundBorderless`), ensuring a minimal and unobstructed viewing experience.
+- **Removed Down Arrow Buttons & Redundant Functions**:
+  - **Bottom-Right Down Arrow (`mobile_player_actions_toggle`)**: Completely removed along with the actions toggle function. The action buttons row (like, dislike, comments, etc.) stays cleanly visible and integrated under the seek bar in fullscreen without needing an extra down-chevron button.
+  - **Top-Left Down Arrow (`mobile_player_back`)**: Completely removed along with the minimize-to-miniplayer action. Audio button margin is aligned starting directly at `8dp` and the player title margin is re-centered cleanly at `60dp`.
 - **Removed Timeline Center Pop-up & Fly-back Animation**:
   - Previously, double-tap seek or scrubbing caused a large glass pill (`mobile_player_seek_time`) displaying `position / duration` to fly from the bottom corner into the center of the video frame, hover there, and fly back down upon animation completion.
   - **Fix**: Removed the center pop-up and fly-in/fly-out translation animations completely. The timestamp and progress position remain anchored cleanly at the bottom of the video, preserving an unobstructed video viewing experience with no distracting animations.
@@ -53,3 +65,4 @@ Tracking document for UI enhancements, design refinements, and feature updates a
 - [ ] Further fine-tuning of player gesture overlays (brightness/volume indicators).
 - [ ] Customizable theme accents matching Android 13+ dynamic Monet theming.
 - [ ] Refined landscape and tablet layouts for the floating navigation cluster.
+

@@ -126,7 +126,8 @@
                     android:padding="12dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_player_minimize"
-                    android:tint="@color/mobile_player_on_video" />
+                    android:tint="@color/mobile_player_on_video"
+                    android:visibility="gone" />
 
                 <!-- MEETUBE(audio-only): headphones - play the sound alone (the video track is dropped,
                      the thumbnail stays), and Home keeps the audio going instead of a PiP window. -->
@@ -135,7 +136,7 @@
                     android:layout_width="@dimen/mobile_player_icon_button"
                     android:layout_height="@dimen/mobile_player_icon_button"
                     android:layout_gravity="top|start"
-                    android:layout_marginStart="52dp"
+                    android:layout_marginStart="8dp"
                     android:layout_marginTop="10dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/mobile_player_audio_only"
@@ -162,7 +163,7 @@
                     android:id="@+id/mobile_player_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="104dp"
+                    android:layout_marginStart="60dp"
                     android:layout_marginTop="10dp"
                     android:layout_marginEnd="148dp"
                     android:background="@drawable/bg_mobile_menu_row"

@@ -965,9 +965,14 @@ public class MobilePlaybackActivity extends MobileActivity
         // with Player buttons on Minimal, no discs at all (applyButton).
         com.newtube.mobile.ui.common.GlassSource videoGlass =
                 com.newtube.mobile.ui.common.Glass.isPlayerFrost(this) ? findViewById(R.id.mobile_player_glass) : null;
-        for (View control : new View[] {mBackButton, mAudioButton, mCastButton, mSubtitlesButton, mMoreButton,
-                mPrevButton, mNextButton, mFullscreenButton, mActionsToggle}) {
+        for (View control : new View[] {mPrevButton, mNextButton}) {
             com.newtube.mobile.ui.common.GlassDrawable.applyButton(control, videoGlass, dp(4), true);
+        }
+        if (mBackButton != null) {
+            mBackButton.setVisibility(View.GONE);
+        }
+        if (mActionsToggle != null) {
+            mActionsToggle.setVisibility(View.GONE);
         }
         // MEETUBE(toasts): the player's own message pills (zoom, 2x, brightness/volume, chapter,
         // notices, skip) frosted like the app's message pill: the video under them, blurred, always -
@@ -982,15 +987,13 @@ public class MobilePlaybackActivity extends MobileActivity
             }
         }
         View time = findViewById(R.id.mobile_player_time);
-        for (View control : new View[] {mPlayPauseButton, mActionsRow, mPlayerLock, mPlayerUnlock}) {
+        for (View control : new View[] {mPlayPauseButton, mActionsRow}) {
             com.newtube.mobile.ui.common.GlassDrawable.applyButton(control, videoGlass, 0, true);
         }
         // the time keeps its see-through pill in every style, Minimal too
         com.newtube.mobile.ui.common.GlassDrawable.apply(time, videoGlass, 0);
         if (videoGlass != null) {
-            mGlassControls = new View[] {mBackButton, mAudioButton, mCastButton, mSubtitlesButton, mMoreButton,
-                    mPrevButton, mNextButton, mFullscreenButton, mActionsToggle, mPlayPauseButton, time, mActionsRow,
-                    mPlayerLock, mPlayerUnlock};
+            mGlassControls = new View[] {mPrevButton, mNextButton, mPlayPauseButton, time, mActionsRow};
         }
         mDebugViewGroup = findViewById(R.id.mobile_player_debug);
 
@@ -1677,13 +1680,9 @@ public class MobilePlaybackActivity extends MobileActivity
             hideControls();
             onChatEntryClicked();
         });
-        mActionsToggle.setOnClickListener(v -> {
-            mActionsShown = !mActionsShown;
-            getSharedPreferences(PLAYER_UI_PREFS, MODE_PRIVATE).edit().putBoolean(KEY_ACTIONS_SHOWN, mActionsShown).apply();
-            android.transition.TransitionManager.beginDelayedTransition(mVideoArea);
-            applyControlsInsets();
-            armAutoHide();
-        });
+        if (mActionsToggle != null) {
+            mActionsToggle.setVisibility(View.GONE);
+        }
 
         // Channel row (avatar + name/subs) opens the channel page; the Subscribe button inside
         // the row keeps its own click. ChannelPresenter resolves the channelId from metadata
@@ -1734,18 +1733,21 @@ public class MobilePlaybackActivity extends MobileActivity
     private void sizePlayerControls(boolean compact) {
         int icon = compact ? dp(40) : getResources().getDimensionPixelSize(R.dimen.mobile_player_icon_button);
         int pad = compact ? dp(10) : dp(12);
-        for (View button : new View[] {mBackButton, mAudioButton, mCastButton, mSubtitlesButton, mMoreButton,
+        for (View button : new View[] {mAudioButton, mCastButton, mSubtitlesButton, mMoreButton,
                 mPrevButton, mNextButton, mFullscreenButton}) {
             if (button != null) {
                 ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) button.getLayoutParams();
                 lp.width = icon;
                 lp.height = icon;
                 if (button == mAudioButton) {
-                    lp.setMarginStart(dp(4) + icon); // beside the back button
+                    lp.setMarginStart(dp(8));
                 }
                 button.setLayoutParams(lp);
                 button.setPadding(pad, pad, pad, pad);
             }
+        }
+        if (mBackButton != null) {
+            mBackButton.setVisibility(View.GONE);
         }
     }
 
@@ -3250,7 +3252,7 @@ public class MobilePlaybackActivity extends MobileActivity
         }
         boolean full = mPortraitFull && !isLandscape();
         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) mTitleView.getLayoutParams();
-        lp.setMarginStart(dp(full ? 16 : 104));
+        lp.setMarginStart(dp(full ? 16 : 60));
         lp.topMargin = dp(full ? 62 : 10);
         lp.setMarginEnd(dp(full ? 16 : 148));
         mTitleView.setLayoutParams(lp);
@@ -3280,16 +3282,15 @@ public class MobilePlaybackActivity extends MobileActivity
         int side = inline ? 0 : dp(12);
         int lift = inline ? 0 : dp(8);
         // MEETUBE(fullscreen-actions): the actions pill takes the bar's place and the bar, with
-        // everything over it, rises above the pill. The chevron beside fullscreen flips it.
-        boolean actions = !inline && mActionsShown && !mLockedChrome;
-        if (mActionsRow != null && mActionsToggle != null) {
+        // everything over it, rises above the pill.
+        boolean actions = !inline && !mLockedChrome;
+        if (mActionsRow != null) {
             mActionsRow.setVisibility(actions ? View.VISIBLE : View.GONE);
             syncPillCounts();
             setMargins(mActionsRow, dp(8), 0, 0, lift);
-            mActionsToggle.setVisibility(inline ? View.GONE : View.VISIBLE);
-            mActionsToggle.setRotation(actions ? 0f : 180f);
-            mActionsToggle.setContentDescription(getString(actions
-                    ? R.string.mobile_player_hide_actions : R.string.mobile_player_show_actions));
+        }
+        if (mActionsToggle != null) {
+            mActionsToggle.setVisibility(View.GONE);
         }
         updateMoreVideosHint();
         if (actions) {
@@ -3377,7 +3378,7 @@ public class MobilePlaybackActivity extends MobileActivity
             float windowX = down.getX() + mRootAt[0];
             float windowY = down.getY() + mRootAt[1];
             return !isOn(mFullscreenButton, windowX, windowY) && !isOn(mChapterButton, windowX, windowY)
-                    && !isOn(mLiveChip, windowX, windowY) && !isOn(mActionsToggle, windowX, windowY);
+                    && !isOn(mLiveChip, windowX, windowY);
         }
 
         @Override
