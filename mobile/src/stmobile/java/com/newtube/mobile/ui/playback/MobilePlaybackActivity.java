@@ -9006,7 +9006,7 @@ public class MobilePlaybackActivity extends MobileActivity
 
     /** ...with {@code label} in place of the player's own position (the seek bar's drag). */
     private void showSeekTime(boolean show, @Nullable CharSequence label) {
-        if (mSeekTime == null || mProgressBar == null || (!show && !mSeekTimeShown)) {
+        if (mSeekTime == null || (!show && !mSeekTimeShown)) {
             return;
         }
         mSeekTimeShown = show;
@@ -9022,70 +9022,47 @@ public class MobilePlaybackActivity extends MobileActivity
                 text.setSpan(new android.text.style.ForegroundColorSpan(0xB3FFFFFF), at.length(), text.length(), 0);
                 mSeekTime.setText(text);
             }
-            mProgressBar.animate().cancel();
-            mProgressBar.setVisibility(View.GONE);
-            if (mSeekTime.getVisibility() == View.VISIBLE) {
-                // up already, or flying back: (back) to the centre from where it is
-                mSeekTime.animate().cancel();
-                mSeekTime.animate().translationX(0f).translationY(0f).scaleX(1f).scaleY(1f).alpha(1f)
-                        .setDuration(SEEK_TIME_IN_MS).setInterpolator(Motion.EMPHASIZED_DECELERATE).start();
-                return;
+            if (mPlayer != null && mTimeBar != null) {
+                mTimeBar.setPosition(mPlayer.getCurrentPosition());
             }
-            // MEETUBE(seek pill): out of the player's bottom-left corner, where its time lives
-            mSeekTime.setVisibility(View.VISIBLE);
-            mSeekTime.setAlpha(0f);
-            androidx.core.view.OneShotPreDrawListener.add(mSeekTime, () -> {
-                float[] corner = seekTimeCorner();
-                mSeekTime.setTranslationX(corner[0]);
-                mSeekTime.setTranslationY(corner[1]);
-                mSeekTime.setScaleX(SEEK_TIME_CORNER_SCALE);
-                mSeekTime.setScaleY(SEEK_TIME_CORNER_SCALE);
-                mSeekTime.animate().translationX(0f).translationY(0f).scaleX(1f).scaleY(1f).alpha(1f)
-                        .setDuration(SEEK_TIME_IN_MS).setInterpolator(Motion.EMPHASIZED_DECELERATE).start();
-            });
-        } else {
-            // back into the corner; the spinner (still buffering) takes the centre once it has left
-            float[] corner = seekTimeCorner();
+            if (mPlayer != null && mPositionView != null) {
+                setTextIfChanged(mPositionView, positionText(mPlayer.getCurrentPosition(), getDurationMs()));
+            }
+            if (mProgressBar != null) {
+                mProgressBar.animate().cancel();
+                mProgressBar.setVisibility(View.GONE);
+            }
+            // U-TUBE: Show directly at the bottom without center pop-up or animation
             mSeekTime.animate().cancel();
-            mSeekTime.animate().translationX(corner[0]).translationY(corner[1])
-                    .scaleX(SEEK_TIME_CORNER_SCALE).scaleY(SEEK_TIME_CORNER_SCALE).alpha(0f)
-                    .setDuration(SEEK_TIME_OUT_MS).setInterpolator(Motion.EMPHASIZED_ACCELERATE)
-                    .withEndAction(() -> {
-                        if (mSeekTimeShown) {
-                            return; // a new burst took it back
-                        }
-                        mSeekTime.setVisibility(View.GONE);
-                        mSeekTime.setTranslationX(0f);
-                        mSeekTime.setTranslationY(0f);
-                        mSeekTime.setScaleX(1f); // seekTimeCorner measures the pill unscaled
-                        mSeekTime.setScaleY(1f);
-                        if (mSpinnerShown) {
-                            mProgressBar.setAlpha(1f);
-                            mProgressBar.setVisibility(View.VISIBLE);
-                        }
-                    }).start();
+            mSeekTime.setTranslationX(0f);
+            mSeekTime.setTranslationY(0f);
+            mSeekTime.setScaleX(1f);
+            mSeekTime.setScaleY(1f);
+            mSeekTime.setAlpha(1f);
+            mSeekTime.setVisibility(View.VISIBLE);
+        } else {
+            // U-TUBE: Hide directly at the bottom without fly-back animation
+            mSeekTime.animate().cancel();
+            mSeekTime.setVisibility(View.GONE);
+            mSeekTime.setAlpha(0f);
+            mSeekTime.setTranslationX(0f);
+            mSeekTime.setTranslationY(0f);
+            mSeekTime.setScaleX(1f);
+            mSeekTime.setScaleY(1f);
+            if (mSpinnerShown && mProgressBar != null) {
+                mProgressBar.setAlpha(1f);
+                mProgressBar.setVisibility(View.VISIBLE);
+            }
         }
     }
 
-    private static final long SEEK_TIME_IN_MS = 320;
-    private static final long SEEK_TIME_OUT_MS = 260;
-    private static final float SEEK_TIME_CORNER_SCALE = 0.8f;
+    private static final long SEEK_TIME_IN_MS = 0;
+    private static final long SEEK_TIME_OUT_MS = 0;
+    private static final float SEEK_TIME_CORNER_SCALE = 1.0f;
 
     /** The translation that puts the seek time pill in the video's bottom-left corner. */
     private float[] seekTimeCorner() {
-        View area = mVideoArea != null ? mVideoArea : mPlayerView;
-        if (area == null || mSeekTime.getWidth() == 0) {
-            return new float[] {0f, 0f};
-        }
-        int[] at = new int[2];
-        int[] box = new int[2];
-        mSeekTime.getLocationInWindow(at);
-        area.getLocationInWindow(box);
-        // the location includes the running translation: measure from the pill's resting place
-        float restX = at[0] - mSeekTime.getTranslationX();
-        float restY = at[1] - mSeekTime.getTranslationY();
-        int margin = dp(12);
-        return new float[] {box[0] + margin - restX, box[1] + area.getHeight() - margin - mSeekTime.getHeight() - restY};
+        return new float[] {0f, 0f};
     }
 
     private void setSpinnerShown(boolean show) {

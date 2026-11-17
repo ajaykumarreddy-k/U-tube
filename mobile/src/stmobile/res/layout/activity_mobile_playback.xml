@@ -567,6 +567,15 @@
                 android:visibility="gone"
                 tools:text="2:10:42   Dictionaries" />
 
+            <!-- U-TUBE: time display at the bottom without center pop-up or fly-back animation -->
+            <TextView
+                android:id="@+id/mobile_player_seek_time"
+                style="@style/MobilePlayerPill"
+                android:layout_gravity="bottom|start"
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone" />
+
             <!-- MEETUBE(issue #223): Chapter pop-ups - the chapter that just started, for a few
                  seconds over the hidden controls; a tap goes to the next one. -->
             <TextView
@@ -636,13 +645,6 @@
                 <ProgressBar
                     style="@style/Widget.MeeTube.GlassSpinner"
                     android:id="@+id/mobile_player_progress" />
-
-                <!-- MEETUBE(seek pill): during a double-tap burst the spinner's place shows where
-                     the video lands (MobilePlaybackActivity.showSeekTime). -->
-                <TextView
-                    android:id="@+id/mobile_player_seek_time"
-                    style="@style/MobilePlayerPill"
-                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/mobile_player_setup_hint"
